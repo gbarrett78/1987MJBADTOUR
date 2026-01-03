@@ -53,7 +53,7 @@ def get_transcription_result(job_name):
         time.sleep(30) # Wait 30 seconds before checking again
 
     if status == 'COMPLETED':
-        transcript_uri = result['TranscriptionJob']['Transcript']['Uri']
+        transcript_uri = result['TranscriptionJob']['TranscriptFileUri']
         # Fetch the transcript file from S3
         import urllib.request
         with urllib.request.urlopen(transcript_uri) as response:
