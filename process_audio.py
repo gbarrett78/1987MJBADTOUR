@@ -37,6 +37,29 @@ transcribe_client = boto3.client("transcribe")
 translate_client = boto3.client("translate")
 polly_client = boto3.client("polly")
 
+def download_inputs_from_s3():
+    """Download MP3 files from s3://bucket/<env>/audio_inputs/ into local audio_inputs/"""
+    os.makedirs(INPUT_FOLDER, exist_ok=True)
+
+    prefix = f"{ENVIRONMENT}/audio_inputs/"
+    resp = s3_client.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix=prefix)
+
+    contents = resp.get("Contents", [])
+    if not contents:
+        logging.info(f"No objects found in s3://{S3_BUCKET_NAME}/{prefix}")
+        return 0
+
+    downloaded = 0
+    for obj in contents:
+        key = obj["Key"]
+        if key.lower().endswith(".mp3"):
+            local_path = os.path.join(INPUT_FOLDER, os.path.basename(key))
+            s3_client.download_file(S3_BUCKET_NAME, key, local_path)
+            logging.info(f"Downloaded {key} -> {local_path}")
+            downloaded += 1
+
+    return downloaded
+
 
 def upload_to_s3(file_path: str, object_name: str) -> bool:
     """Upload a file to an S3 bucket."""
@@ -198,6 +221,8 @@ def process_file(file_path: str) -> None:
 
 
 if __name__ == "__main__":
+    download_inputs_from_s3()
+    
     if not os.path.exists(INPUT_FOLDER):
         logging.error(f"Input folder '{INPUT_FOLDER}' does not exist.")
     else:
