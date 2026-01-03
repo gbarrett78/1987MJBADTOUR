@@ -96,14 +96,14 @@ def process_file(file_path):
     """Main processing function for a single file."""
     filename = os.path.basename(file_path)
     base, ext = os.path.splitext(filename)
-    s3_key_audio_input = f'audio-inputs/{filename}'
+    s3_key_audio_input = f'{ENVIRONMENT}/audio_inputs/{filename}'
     transcribe_job_name = f'transcribe-job-{base}-{int(time.time())}'
 
     # 1. Upload .mp3 file to S3
     if not upload_to_s3(file_path, s3_key_audio_input):
         return
 
-    s3_uri_input = f's3://{S3_BUCKET_NAME}/{ENVIRONMENT}/{s3_key_audio_input}'
+    s3_uri_input = f's3://{S3_BUCKET_NAME}/{s3_key_audio_input}'
 
     # 2. Call Amazon Transcribe
     start_transcription_job(filename, transcribe_job_name, s3_uri_input)
