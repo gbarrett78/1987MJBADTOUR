@@ -52,27 +52,27 @@ def get_transcription_result(job_name):
         logging.info(f"Transcription job status: {status}. Waiting...")
         time.sleep(30) # Wait 30 seconds before checking again
 
-   if status == 'COMPLETED':
+    if status == 'COMPLETED':
     # Debug: Log the full response to see structure
     logging.info(f"Full transcript result: {json.dumps(result, indent=2)}")
-    
+
     # Try to get transcript URI with multiple possible keys
     transcript_section = result.get('TranscriptionJob', {}).get('Transcript', {})
     logging.info(f"Transcript section: {transcript_section}")
-    
+
     # Try different possible key names
     transcript_uri = (
         transcript_section.get('TranscriptFileUri') or 
         transcript_section.get('Uri') or 
         transcript_section.get('TranscriptUri')
     )
-    
+
     if not transcript_uri:
         logging.error(f"Could not find transcript URI. Available keys: {list(transcript_section.keys())}")
         return None
-    
+
     logging.info(f"Found transcript URI: {transcript_uri}")
-    
+
     # Fetch the transcript file from S3
     import urllib.request
     with urllib.request.urlopen(transcript_uri) as response:
@@ -82,7 +82,7 @@ def get_transcription_result(job_name):
     transcript_json = json.loads(transcript_data)
     transcript_text = transcript_json['results']['transcripts'][0]['transcript']
     return transcript_text
-    else:
+        else:
         logging.error(f"Transcription job failed: {result['TranscriptionJob'].get('FailureReason', 'No reason provided')}")
         return None
 
